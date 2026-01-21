@@ -5,6 +5,9 @@
 static constexpr int TROCKEN = 600; // 0 %
 static constexpr int NASS = 200; // 100 %
 
+static constexpr int DUNKEL = 50; // 0 %
+static constexpr int HELL = 800; // 100 %
+
 void setup()
 {
   initialisiereSmartPlant();
@@ -20,7 +23,8 @@ void setup()
 
 void loop()
 {
-  int feuchtigkeit = leseFeuchtigkeitswertInProzent(NASS, TROCKEN);
+  int feuchtigkeit = leseFeuchtigkeitswertInProzent(TROCKEN, NASS);
+  int licht = leseLichtInProzent(DUNKEL, HELL);
 
   if (feuchtigkeit < 10)
   {
