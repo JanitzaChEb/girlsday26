@@ -12,7 +12,8 @@ enum Emotion {
     TRAURIG,
     NEUTRAL,
     GLUECKLICH,
-    LACHT
+    LACHT,
+    SCHLAEFT
 };
 
 struct Animation {

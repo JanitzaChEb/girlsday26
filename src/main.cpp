@@ -3,10 +3,10 @@
 
 // Kalibrierung
 static constexpr int TROCKEN = 600; // 0 %
-static constexpr int NASS = 200; // 100 %
+static constexpr int NASS = 200;    // 100 %
 
 static constexpr int DUNKEL = 50; // 0 %
-static constexpr int HELL = 800; // 100 %
+static constexpr int HELL = 800;  // 100 %
 
 void setup()
 {
@@ -26,20 +26,28 @@ void loop()
   int feuchtigkeit = leseFeuchtigkeitswertInProzent(TROCKEN, NASS);
   int licht = leseLichtInProzent(DUNKEL, HELL);
 
-  if (feuchtigkeit < 10)
+  if (licht < 30)
   {
-    setzeLEDFarbe(ROT);
-    setzeEmotion(TRAURIG);
+    setzeLEDFarbe(AUS);
+    setzeEmotion(SCHLAEFT);
   }
-  if (feuchtigkeit > 10 && feuchtigkeit < 50)
+  else
   {
-    setzeLEDFarbe(GELB);
-    setzeEmotion(NEUTRAL);
-  }
-  if (feuchtigkeit > 50)
-  {
-    setzeLEDFarbe(GRUEN);
-    setzeEmotion(GLUECKLICH);
+    if (feuchtigkeit < 10)
+    {
+      setzeLEDFarbe(ROT);
+      setzeEmotion(TRAURIG);
+    }
+    if (feuchtigkeit > 10 && feuchtigkeit < 50)
+    {
+      setzeLEDFarbe(GELB);
+      setzeEmotion(NEUTRAL);
+    }
+    if (feuchtigkeit > 50)
+    {
+      setzeLEDFarbe(GRUEN);
+      setzeEmotion(GLUECKLICH);
+    }
   }
 
   aktualisiereDisplay();
