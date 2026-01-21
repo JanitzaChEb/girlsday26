@@ -9,6 +9,13 @@ void setup()
 {
   initialisiereSmartPlant();
   aktiviereFeuchtigkeitswertAufDisplay();
+
+  setzeLEDFarbe(ROT);
+  delay(400);
+  setzeLEDFarbe(GELB);
+  delay(400);
+  setzeLEDFarbe(GRUEN);
+  delay(400);
 }
 
 void loop()
