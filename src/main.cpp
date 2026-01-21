@@ -11,7 +11,7 @@ static constexpr int HELL = 800;  // 100 %
 void setup()
 {
   initialisiereSmartPlant();
-  aktiviereFeuchtigkeitswertAufDisplay();
+  //aktiviereFeuchtigkeitswertAufDisplay();
 
   setzeLEDFarbe(ROT);
   delay(400);
@@ -21,9 +21,13 @@ void setup()
   delay(400);
 }
 
+int letzter_Feuchtigkeitswert = 0;
+int aktueller_Feuchtigkeitswert = 0;
+
 void loop()
 {
-  int feuchtigkeit = leseFeuchtigkeitswertInProzent(TROCKEN, NASS);
+  letzter_Feuchtigkeitswert = aktueller_Feuchtigkeitswert;
+  aktueller_Feuchtigkeitswert = leseFeuchtigkeitswertInProzent(TROCKEN, NASS);
   int licht = leseLichtInProzent(DUNKEL, HELL);
 
   if (licht < 30)
@@ -33,18 +37,23 @@ void loop()
   }
   else
   {
-    if (feuchtigkeit < 10)
+    if (aktueller_Feuchtigkeitswert < 10)
     {
       setzeLEDFarbe(ROT);
       setzeEmotion(TRAURIG);
     }
-    if (feuchtigkeit > 10 && feuchtigkeit < 50)
+    if (aktueller_Feuchtigkeitswert > 10 && aktueller_Feuchtigkeitswert < 30)
     {
       setzeLEDFarbe(GELB);
       setzeEmotion(NEUTRAL);
     }
-    if (feuchtigkeit > 50)
+    if (aktueller_Feuchtigkeitswert > 30)
     {
+      if( aktueller_Feuchtigkeitswert-5 > letzter_Feuchtigkeitswert ) {
+        for(uint8_t i = 0; i < 3; i++) {
+          spieleAnimation(LACHT);
+        }
+      }
       setzeLEDFarbe(GRUEN);
       setzeEmotion(GLUECKLICH);
     }

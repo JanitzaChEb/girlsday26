@@ -28,6 +28,7 @@ void initialisiereSmartPlant();
 
 void setzeLEDFarbe(LED_Farbe farbe);
 void setzeEmotion(Emotion emotion);
+void spieleAnimation(Emotion emotion);
 void aktiviereFeuchtigkeitswertAufDisplay();
 int leseFeuchtigkeitswertInProzent(int messwert_nass, int messwert_trocken);
 int leseLichtInProzent(int messwert_hell, int messwert_dunkel);

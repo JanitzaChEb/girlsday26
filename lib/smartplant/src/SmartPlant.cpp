@@ -504,7 +504,7 @@ int leseFeuchtigkeitswertInProzent(int messwert_trocken, int messwert_nass)
   delay(10);
   messwert_feuchtigkeit = analogRead(SENSOR);
   digitalWrite(SENSOR_STROMVERSORGUNG, LOW);
-  prozent_feuchtigkeit = rechneMesswertInProzentUm(messwert_feuchtigkeit, messwert_nass, messwert_trocken);
+  prozent_feuchtigkeit = rechneMesswertInProzentUm(messwert_trocken-messwert_feuchtigkeit, messwert_nass, messwert_trocken);
   return prozent_feuchtigkeit;
 }
 
@@ -528,6 +528,24 @@ void setzeEmotion(Emotion neueEmotion)
     g_frameCounter = 0;
     g_lastFrameSwitchMs = millis();
   }
+}
+
+void spieleAnimation(Emotion emotion)
+{
+  const Animation *anim = animationFuerEmotion(emotion);
+  const int x = (SCREEN_WIDTH - anim->width) / 2;
+  const int y = (SCREEN_HEIGHT - anim->height) / 2;
+  
+  for (uint8_t i = 0; i < anim->frameCount; i++)
+    {
+        const uint8_t* frame = anim->frames[i];
+
+        display.clearDisplay();
+        display.drawBitmap(x, y, frame, anim->width, anim->height, SSD1306_WHITE);
+        display.display();
+
+        delay(anim->frameDelayMs);
+    }
 }
 
 void aktualisiereDisplay()
