@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SmartPlant Blockly → Arduino</title>
+
+  <!-- Blockly via CDN -->
+  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    header { padding: 12px 16px; border-bottom: 1px solid #ddd; display: flex; gap: 12px; align-items: center; }
+    #blocklyDiv { height: calc(100vh - 56px); width: 60vw; float: left; }
+    #rightPane { height: calc(100vh - 56px); width: 40vw; float: left; border-left: 1px solid #ddd; box-sizing: border-box; }
+    #code { width: 100%; height: 100%; box-sizing: border-box; padding: 12px; border: 0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 13px; }
+    button { padding: 8px 10px; }
+    .hint { color: #666; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <button id="btnGen">Arduino-Code generieren</button>
+    <button id="btnReset">Workspace zurücksetzen</button>
+    <span class="hint">Start: setup/loop-Blöcke sind bereits da. SmartPlant-Blöcke findest du links im Toolbox-Menü.</span>
+  </header>
+
+  <div id="blocklyDiv"></div>
+  <div id="rightPane">
+    <textarea id="code" spellcheck="false">// Klicke auf "Arduino-Code generieren"</textarea>
+  </div>
+
+  <!-- Toolbox -->
+  <xml id="toolbox" style="display:none">
+    <category name="Arduino" colour="#5C81A6">
+      <block type="arduino_setup"></block>
+      <block type="arduino_loop"></block>
+      <block type="arduino_delay_ms"></block>
+    </category>
+
+    <category name="SmartPlant" colour="#7CB342">
+      <block type="sp_init"></block>
+      <block type="sp_set_led"></block>
+      <block type="sp_set_emotion"></block>
+      <block type="sp_play_animation"></block>
+      <block type="sp_show_moisture_on_display"></block>
+      <block type="sp_read_moisture_percent"></block>
+      <block type="sp_read_light_percent"></block>
+      <block type="sp_update_display"></block>
+    </category>
+
+    <category name="Werte (Enums)" colour="#8E24AA">
+      <block type="sp_led_enum"></block>
+      <block type="sp_emotion_enum"></block>
+    </category>
+
+    <category name="Logik" colour="#5BA58C">
+      <block type="controls_if"></block>
+      <block type="logic_compare"></block>
+      <block type="logic_operation"></block>
+      <block type="logic_negate"></block>
+      <block type="logic_boolean"></block>
+    </category>
+
+    <category name="Mathe" colour="#5C68A6">
+      <block type="math_number"></block>
+      <block type="math_arithmetic"></block>
+    </category>
+
+    <category name="Variablen" colour="#A65C81" custom="VARIABLE"></category>
+
+    <category name="Text" colour="#5CA68D">
+      <block type="text"></block>
+      <block type="text_print"></block>
+    </category>
+  </xml>
+
+  <script>
+    // --- 1) Eigene Block-Definitionen -------------------------
+
+    // Arduino-Container: setup / loop
+    Blockly.defineBlocksWithJsonArray([
+      {
+        "type": "arduino_setup",
+        "message0": "setup %1 %2",
+        "args0": [
+          { "type": "input_dummy" },
+          { "type": "input_statement", "name": "DO" }
+        ],
+        "colour": 210,
+        "tooltip": "Arduino setup()",
+        "helpUrl": ""
+      },
+      {
+        "type": "arduino_loop",
+        "message0": "loop %1 %2",
+        "args0": [
+          { "type": "input_dummy" },
+          { "type": "input_statement", "name": "DO" }
+        ],
+        "colour": 210,
+        "tooltip": "Arduino loop()",
+        "helpUrl": ""
+      },
+      {
+        "type": "arduino_delay_ms",
+        "message0": "delay %1 ms",
+        "args0": [
+          { "type": "input_value", "name": "MS", "check": "Number" }
+        ],
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 210,
+        "tooltip": "Arduino delay(ms)",
+        "helpUrl": ""
+      }
+    ]);
+
+    // SmartPlant Enums als Value-Blocks
+    Blockly.defineBlocksWithJsonArray([
+      {
+        "type": "sp_led_enum",
+        "message0": "LED_Farbe %1",
+        "args0": [
+          {
+            "type": "field_dropdown",
+            "name": "VAL",
+            "options": [
+              ["AUS", "AUS"],
+              ["ROT", "ROT"],
+              ["GELB", "GELB"],
+              ["GRUEN", "GRUEN"]
+            ]
+          }
+        ],
+        "output": "LED_Farbe",
+        "colour": 285,
+        "tooltip": "LED_Farbe enum",
+        "helpUrl": ""
+      },
+      {
+        "type": "sp_emotion_enum",
+        "message0": "Emotion %1",
+        "args0": [
+          {
+            "type": "field_dropdown",
+            "name": "VAL",
+            "options": [
+              ["TRAURIG", "TRAURIG"],
+              ["NEUTRAL", "NEUTRAL"],
+              ["GLUECKLICH", "GLUECKLICH"],
+              ["LACHT", "LACHT"],
+              ["SCHLAEFT", "SCHLAEFT"]
+            ]
+          }
+        ],
+        "output": "Emotion",
+        "colour": 285,
+        "tooltip": "Emotion enum",
+        "helpUrl": ""
+      }
+    ]);
+
+    // SmartPlant Funktions-Blöcke
+    Blockly.defineBlocksWithJsonArray([
+      {
+        "type": "sp_init",
+        "message0": "initialisiereSmartPlant()",
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 90,
+        "tooltip": "Initialisiert SmartPlant",
+        "helpUrl": ""
+      },
+      {
+        "type": "sp_set_led",
+        "message0": "setzeLEDFarbe( %1 )",
+        "args0": [
+          { "type": "input_value", "name": "FARBE", "check": "LED_Farbe" }
+        ],
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 90,
+        "tooltip": "Setzt LED Farbe",
+        "helpUrl": ""
+      },
+      {
+        "type": "sp_set_emotion",
+        "message0": "setzeEmotion( %1 )",
+        "args0": [
+          { "type": "input_value", "name": "EMO", "check": "Emotion" }
+        ],
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 90,
+        "tooltip": "Setzt Emotion",
+        "helpUrl": ""
+      },
+      {
+        "type": "sp_play_animation",
+        "message0": "spieleAnimation( %1 )",
+        "args0": [
+          { "type": "input_value", "name": "EMO", "check": "Emotion" }
+        ],
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 90,
+        "tooltip": "Spielt Animation zu Emotion",
+        "helpUrl": ""
+      },
+      {
+        "type": "sp_show_moisture_on_display",
+        "message0": "aktiviereFeuchtigkeitswertAufDisplay()",
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 90,
+        "tooltip": "Feuchtigkeitswert auf Display aktivieren",
+        "helpUrl": ""
+      },
+      {
+        "type": "sp_read_moisture_percent",
+        "message0": "leseFeuchtigkeitswertInProzent( nass %1 , trocken %2 )",
+        "args0": [
+          { "type": "input_value", "name": "NASS", "check": "Number" },
+          { "type": "input_value", "name": "TROCKEN", "check": "Number" }
+        ],
+        "output": "Number",
+        "colour": 90,
+        "tooltip": "Liest Feuchtigkeit in Prozent (0..100)",
+        "helpUrl": ""
+      },
+      {
+        "type": "sp_read_light_percent",
+        "message0": "leseLichtInProzent( hell %1 , dunkel %2 )",
+        "args0": [
+          { "type": "input_value", "name": "HELL", "check": "Number" },
+          { "type": "input_value", "name": "DUNKEL", "check": "Number" }
+        ],
+        "output": "Number",
+        "colour": 90,
+        "tooltip": "Liest Licht in Prozent (0..100)",
+        "helpUrl": ""
+      },
+      {
+        "type": "sp_update_display",
+        "message0": "aktualisiereDisplay()",
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 90,
+        "tooltip": "Display aktualisieren",
+        "helpUrl": ""
+      }
+    ]);
+
+    // --- 2) Arduino-Code Generator (minimal, aber brauchbar) ---
+
+    // Kleines Generator-Objekt (wir nutzen nicht Blockly.Arduino, sondern bauen selbst)
+    const Gen = {
+      indent: (code, level=1) => {
+        const pad = "  ".repeat(level);
+        return code.split("\n").map(l => l ? pad + l : l).join("\n");
+      },
+      // Statement chain zu Code
+      statementsToCode(block, name) {
+        let code = "";
+        let child = block.getInputTargetBlock(name);
+        while (child) {
+          code += this.blockToCode(child);
+          child = child.getNextBlock();
+        }
+        return code;
+      },
+      // Value to code
+      valueToCode(block, name, defaultValue="0") {
+        const target = block.getInputTargetBlock(name);
+        if (!target) return defaultValue;
+        return this.blockToCode(target).trim();
+      },
+      // Main dispatcher
+      blockToCode(block) {
+        if (!block) return "";
+        const t = block.type;
+
+        // --- Container setup/loop werden separat behandelt ---
+        if (t === "arduino_setup" || t === "arduino_loop") return "";
+
+        if (t === "arduino_delay_ms") {
+          const ms = this.valueToCode(block, "MS", "0");
+          return `delay(${ms});\n`;
+        }
+
+        // SmartPlant statements
+        if (t === "sp_init") return "initialisiereSmartPlant();\n";
+        if (t === "sp_set_led") {
+          const farbe = this.valueToCode(block, "FARBE", "AUS");
+          return `setzeLEDFarbe(${farbe});\n`;
+        }
+        if (t === "sp_set_emotion") {
+          const emo = this.valueToCode(block, "EMO", "NEUTRAL");
+          return `setzeEmotion(${emo});\n`;
+        }
+        if (t === "sp_play_animation") {
+          const emo = this.valueToCode(block, "EMO", "NEUTRAL");
+          return `spieleAnimation(${emo});\n`;
+        }
+        if (t === "sp_show_moisture_on_display") return "aktiviereFeuchtigkeitswertAufDisplay();\n";
+        if (t === "sp_update_display") return "aktualisiereDisplay();\n";
+
+        // SmartPlant values
+        if (t === "sp_led_enum") return block.getFieldValue("VAL");
+        if (t === "sp_emotion_enum") return block.getFieldValue("VAL");
+
+        if (t === "sp_read_moisture_percent") {
+          const nass = this.valueToCode(block, "NASS", "200");
+          const trocken = this.valueToCode(block, "TROCKEN", "600");
+          return `leseFeuchtigkeitswertInProzent(${nass}, ${trocken})`;
+        }
+        if (t === "sp_read_light_percent") {
+          const hell = this.valueToCode(block, "HELL", "800");
+          const dunkel = this.valueToCode(block, "DUNKEL", "50");
+          return `leseLichtInProzent(${hell}, ${dunkel})`;
+        }
+
+        // --- Minimaler Support für ein paar Standard-Blöcke (if, compare, number, vars) ---
+        if (t === "math_number") return String(block.getFieldValue("NUM"));
+
+        if (t === "logic_boolean") return block.getFieldValue("BOOL") === "TRUE" ? "true" : "false";
+
+        if (t === "logic_compare") {
+          const op = block.getFieldValue("OP");
+          const A = this.valueToCode(block, "A", "0");
+          const B = this.valueToCode(block, "B", "0");
+          const map = { EQ:"==", NEQ:"!=", LT:"<", LTE:"<=", GT:">", GTE:">=" };
+          return `${A} ${map[op] || "=="} ${B}`;
+        }
+
+        if (t === "logic_operation") {
+          const op = block.getFieldValue("OP") === "AND" ? "&&" : "||";
+          const A = this.valueToCode(block, "A", "false");
+          const B = this.valueToCode(block, "B", "false");
+          return `(${A} ${op} ${B})`;
+        }
+
+        if (t === "logic_negate") {
+          const BOOL = this.valueToCode(block, "BOOL", "false");
+          return `(!${BOOL})`;
+        }
+
+        if (t === "math_arithmetic") {
+          const op = block.getFieldValue("OP");
+          const A = this.valueToCode(block, "A", "0");
+          const B = this.valueToCode(block, "B", "0");
+          const map = { ADD:"+", MINUS:"-", MULTIPLY:"*", DIVIDE:"/", POWER:"^" };
+          // POWER ist nicht direkt C++ Operator; wir lassen es einfach als pow(...) stehen:
+          if (op === "POWER") return `pow(${A}, ${B})`;
+          return `(${A} ${map[op] || "+"} ${B})`;
+        }
+
+        if (t === "controls_if") {
+          let code = "";
+          // IF0
+          const cond0 = this.valueToCode(block, "IF0", "false");
+          const do0 = this.statementsToCode(block, "DO0");
+          code += `if (${cond0}) {\n${this.indent(do0)}\n}\n`;
+
+          // ELSEIFs
+          for (let i = 1; i <= 10; i++) {
+            if (!block.getInput("IF" + i)) break;
+            const cond = this.valueToCode(block, "IF" + i, "false");
+            const d = this.statementsToCode(block, "DO" + i);
+            code = code.replace(/\n}\n$/, "\n}"); // leicht hübscher
+            code += ` else if (${cond}) {\n${this.indent(d)}\n}\n`;
+          }
+
+          // ELSE
+          if (block.getInput("ELSE")) {
+            const e = this.statementsToCode(block, "ELSE");
+            code = code.replace(/\n}\n$/, "\n}"); 
+            code += ` else {\n${this.indent(e)}\n}\n`;
+          }
+          return code;
+        }
+
+        // Variablen: set/get
+        if (t === "variables_get") {
+          return Blockly.JavaScript.nameDB_.getName(block.getFieldValue("VAR"), Blockly.VARIABLE_CATEGORY_NAME);
+        }
+        if (t === "variables_set") {
+          const v = Blockly.JavaScript.nameDB_.getName(block.getFieldValue("VAR"), Blockly.VARIABLE_CATEGORY_NAME);
+          const val = this.valueToCode(block, "VALUE", "0");
+          return `${v} = ${val};\n`;
+        }
+
+        // Fallback: markiere unbekannten Block
+        return `/* Unbekannter Block: ${t} */\n`;
+      }
+    };
+
+    // --- 3) Workspace initialisieren + Start-Blöcke einfügen ---
+
+    const workspace = Blockly.inject("blocklyDiv", {
+      toolbox: document.getElementById("toolbox"),
+      trashcan: true,
+      scrollbars: true,
+      grid: { spacing: 20, length: 3, snap: true }
+    });
+
+    function createInitialBlocks() {
+      workspace.clear();
+
+      const setupBlock = workspace.newBlock("arduino_setup");
+      setupBlock.initSvg();
+      setupBlock.render();
+      setupBlock.moveBy(30, 30);
+
+      const loopBlock = workspace.newBlock("arduino_loop");
+      loopBlock.initSvg();
+      loopBlock.render();
+      loopBlock.moveBy(30, 220);
+
+      // Optional: Standard in setup: initialisiereSmartPlant()
+      const init = workspace.newBlock("sp_init");
+      init.initSvg();
+      init.render();
+      // in setup "reinstecken"
+      setupBlock.getInput("DO").connection.connect(init.previousConnection);
+    }
+
+    createInitialBlocks();
+
+    // --- 4) Code-Generierung: Setup/Loop finden und zusammensetzen ---
+
+    function generateArduino() {
+      // NameDB für Variablen sauber initialisieren (wir missbrauchen JS nameDB fürs Namensmapping)
+      if (!Blockly.JavaScript.nameDB_) {
+        Blockly.JavaScript.nameDB_ = new Blockly.Names(Blockly.JavaScript.RESERVED_WORDS_);
+      }
+      Blockly.JavaScript.nameDB_.setVariableMap(workspace.getVariableMap());
+      Blockly.JavaScript.nameDB_.reset();
+
+      const tops = workspace.getTopBlocks(true);
+
+      const setup = tops.find(b => b.type === "arduino_setup");
+      const loop  = tops.find(b => b.type === "arduino_loop");
+
+      const setupCode = setup ? Gen.statementsToCode(setup, "DO") : "";
+      const loopCode  = loop  ? Gen.statementsToCode(loop, "DO")  : "";
+
+      // (sehr) einfache Variable-Declaration-Sammlung:
+      // Blockly Variablen sind typ-los; wir deklarieren sie als int.
+      const vars = workspace.getAllVariables();
+      let varDecl = "";
+      if (vars.length) {
+        varDecl += vars.map(v => `int ${Blockly.JavaScript.nameDB_.getName(v.name, Blockly.VARIABLE_CATEGORY_NAME)} = 0;`).join("\n") + "\n\n";
+      }
+
+      const header =
+`// Generiert mit Blockly
+// Hinweis: ggf. #include "SmartPlant.h" ergänzen
+
+`;
+
+      const out =
+header +
+varDecl +
+`void setup()\n{\n${Gen.indent(setupCode)}\n}\n\n` +
+`void loop()\n{\n${Gen.indent(loopCode)}\n}\n`;
+
+      return out;
+    }
+
+    // Buttons
+    document.getElementById("btnGen").addEventListener("click", () => {
+      document.getElementById("code").value = generateArduino();
+    });
+
+    document.getElementById("btnReset").addEventListener("click", () => {
+      createInitialBlocks();
+      document.getElementById("code").value = "// Workspace zurückgesetzt";
+    });
+  </script>
+</body>
+</html>

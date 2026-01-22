@@ -25,6 +25,7 @@ struct Animation {
 };
 
 void initialisiereSmartPlant();
+void zeigeLadebildschirm();
 
 void setzeLEDFarbe(LED_Farbe farbe);
 void setzeEmotion(Emotion emotion);

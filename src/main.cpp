@@ -13,6 +13,7 @@ void setup()
   initialisiereSmartPlant();
   //aktiviereFeuchtigkeitswertAufDisplay();
 
+  zeigeLadebildschirm();
   setzeLEDFarbe(ROT);
   delay(400);
   setzeLEDFarbe(GELB);
