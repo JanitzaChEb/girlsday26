@@ -24,7 +24,7 @@ int messwert_feuchtigkeit = 0;
 int messwert_licht = 0;
 int prozent_licht = 0;
 // Statuswerte
-bool zeigeFeuchtigkeit = false;
+bool zeigeWerte = false;
 Emotion emotion = NEUTRAL;
 
 // #######################################################################################################
@@ -526,6 +526,14 @@ void initialisiereSmartPlant()
   // Animation-Timer initialisieren
   g_frameCounter = 0;
   g_lastFrameSwitchMs = millis();
+
+  zeigeLadebildschirm();
+  setzeLEDFarbe(ROT);
+  delay(400);
+  setzeLEDFarbe(GELB);
+  delay(400);
+  setzeLEDFarbe(GRUEN);
+  delay(400);
 }
 
 void zeigeLadebildschirm()
@@ -571,13 +579,13 @@ int rechneMesswertInProzentUm(int raw, int messwert_min, int messwert_max)
   return map(raw, messwert_min, messwert_max, 0, 100);
 }
 
-int leseFeuchtigkeitswertInProzent(int messwert_trocken, int messwert_nass)
+int leseFeuchtigkeitswertInProzent(int messwert_nass, int messwert_trocken)
 {
   digitalWrite(SENSOR_STROMVERSORGUNG, HIGH);
   delay(10);
   messwert_feuchtigkeit = analogRead(SENSOR);
   digitalWrite(SENSOR_STROMVERSORGUNG, LOW);
-  prozent_feuchtigkeit = rechneMesswertInProzentUm(messwert_trocken - messwert_feuchtigkeit, messwert_nass, messwert_trocken);
+  prozent_feuchtigkeit = rechneMesswertInProzentUm((messwert_trocken - messwert_feuchtigkeit)+messwert_nass, messwert_nass, messwert_trocken);
   return prozent_feuchtigkeit;
 }
 
@@ -588,9 +596,9 @@ int leseLichtInProzent(int messwert_dunkel, int messwert_hell)
   return prozent_licht;
 }
 
-void aktiviereFeuchtigkeitswertAufDisplay()
+void aktiviereMesswerteAufDisplay()
 {
-  zeigeFeuchtigkeit = true;
+  zeigeWerte = true;
 }
 
 void setzeEmotion(Emotion neueEmotion)
@@ -642,7 +650,7 @@ void aktualisiereDisplay()
   const int y = (SCREEN_HEIGHT - anim->height) / 2;
   display.drawBitmap(x, y, frame, anim->width, anim->height, SSD1306_WHITE);
 
-  if (zeigeFeuchtigkeit)
+  if (zeigeWerte)
   {
     display.setTextSize(1);
     display.setTextColor(WHITE);

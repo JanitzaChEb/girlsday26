@@ -26,13 +26,13 @@ struct Animation {
 
 void initialisiereSmartPlant();
 void zeigeLadebildschirm();
+void aktiviereMesswerteAufDisplay();
 
 void setzeLEDFarbe(LED_Farbe farbe);
 void setzeEmotion(Emotion emotion);
 void spieleAnimation(Emotion emotion);
-void aktiviereFeuchtigkeitswertAufDisplay();
 int leseFeuchtigkeitswertInProzent(int messwert_nass, int messwert_trocken);
-int leseLichtInProzent(int messwert_hell, int messwert_dunkel);
+int leseLichtInProzent(int messwert_dunkel, int messwert_hell);
 void aktualisiereDisplay();
 
 #endif
