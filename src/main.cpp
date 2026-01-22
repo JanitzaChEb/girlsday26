@@ -14,6 +14,8 @@ void setup()
 {
   initialisiereSmartPlant();
   aktiviereMesswerteAufDisplay();
+
+  setzeLEDFarbe(AUS);
 }
 
 void loop()
